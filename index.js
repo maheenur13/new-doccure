@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(cors());
 app.use(fileUpload());
 
-const port = process.env.PORT || 4545;
+const port = process.env.PORT || 5000;
 
 // console.log(process.env.DB_NAME)
 const newUri = `mongodb+srv://${process.env.DB_USER_NAME}:${process.env.DB_PASS}@cluster0.fsyqv.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
@@ -697,6 +697,4 @@ const authenticateToken = (req, res, next) => {
 // });
 
 
-app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
-})
+app.listen(port);
