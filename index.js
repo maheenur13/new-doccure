@@ -29,6 +29,7 @@ newClient.connect(err => {
     const doctorCollection = newClient.db('doccure_database').collection("doctor_collection");
     const appointMentCollection = newClient.db('doccure_database').collection("appointment_collection");
     const patientCollectionByDoctorAppointment = newClient.db('doccure_database').collection('patient_collection_by_doctor_appointment');
+    const pharmacyCollection = newClient.db('doccure_database').collection('pharmacy-collection');
     //user register function
     app.post('/auth/registration', (req, res) => {
         const authData = req.body;
@@ -113,14 +114,33 @@ newClient.connect(err => {
 
     //get user data operation
     app.get('/userDetail/:email/:userType', (req, res) => {
-        const { userType } = req.params;
-        // console.log(userType);
-        if (userType === 'patient') {
-            getUserDetails(req.params.email, res);
-        } else if (userType === 'doctor') {
-            getDoctorDetails(req.params.email, res)
-        }
+            const { userType } = req.params;
+            // console.log(userType);
+            if (userType === 'patient') {
+                getUserDetails(req.params.email, res);
+            } else if (userType === 'doctor') {
+                getDoctorDetails(req.params.email, res)
+            }
 
+        })
+        //post pharmacy api
+    app.post('/add-pharmacy', (req, res) => {
+        const { pharmacyDetails } = req.body;
+        addPharmacy(pharmacyDetails, res);
+    })
+
+    // get pharmacy api
+    app.get('/get-allPharmacy', async(req, res) => {
+        try {
+            pharmacyCollection.find().toArray((err, items) => {
+                if (items.length > 0) {
+                    res.status(200).send({ success: true, data: items, message: 'Pharmacy data Found!' });
+                } else res.status(404).send({ success: false, data: null, message: 'No Pharmacy found!' });
+            })
+
+        } catch (error) {
+            res.status(500).send({ success: false, data: null, message: 'Something went wrong!' });
+        }
     })
 
     // get doctor details
@@ -517,8 +537,23 @@ newClient.connect(err => {
         }
     }
 
+    //add pharmacy
 
-    //patient login
+    const addPharmacy = async(payload, res) => {
+            try {
+                await pharmacyCollection.insertOne(payload)
+                    .then((data) => {
+                        if (data.acknowledged) {
+                            res.status(200).send({ success: true, data: data, message: 'Pharmacy added successfully' });
+                        } else {
+                            res.status(404).send({ success: false, data: null, message: 'Added failed!' })
+                        }
+                    })
+            } catch (error) {
+                res.status(404).send({ success: false, data: null, message: 'Something went wrong!' })
+            }
+        }
+        //patient login
     const patientLogin = async(authData, res) => {
         await regUserCollection.findOne({ email: authData.email })
             .then(async result => {
